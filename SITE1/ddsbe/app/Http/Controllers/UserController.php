@@ -53,16 +53,13 @@ class UserController extends Controller
     /**
      * Obtain and show one user
      */
-    public function show($id)
-    {
-        $user = User::findOrFail($id);
-        //Optional
-        /*if(!$user){
-            return response()->json(['message' => 'User not Found'])
-        }*/
-        return $this->successResponse($user);
-    }
-
+public function show($id)
+{
+    // If ID is not found, the Handler we just setup will 
+    // catch the error and return your custom JSON automatically.
+    $user = User::findOrFail($id); 
+    return $this->successResponse($user);
+}
     /**
      * Update an existing user
      */

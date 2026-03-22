@@ -2,11 +2,8 @@
 
 namespace App\Exceptions;
 
-use App\Traits\ApiResponser;
-use Illuminate\Http\Request;
+use App\Traits\ApiResponser; // Correct path based on your folders
 use Illuminate\Http\Response;
-
-
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
@@ -16,81 +13,34 @@ use Throwable;
 
 class Handler extends ExceptionHandler
 {
-    use ApiResponser;
+    use ApiResponser; // This allows us to use $this->errorResponse()
 
-    /**
-     * A list of the exception types that should not be reported.
-     *
-     * @var array
-     */
-    protected $dontReport = [
-        AuthorizationException::class,
-        HttpException::class,
-        ModelNotFoundException::class,
-        ValidationException::class,
-    ];
-
-    /**
-     * Report or log an exception.
-     *
-     * This is a great spot to send exceptions to Sentry, Bugsnag, etc.
-     *
-     * @param  \Throwable  $exception
-     * @return void
-     *
-     * @throws \Exception
-     */
-    public function report(Throwable $exception)
-    {
-        parent::report($exception);
-    }
-
-    /**
-     * Render an exception into an HTTP response.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Throwable  $exception
-     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
-     *
-     * @throws \Throwable
-     */
-    
     public function render($request, Throwable $exception)
     {
-         // http not found    
+        // 1. Handle 404 Route Not Found
         if ($exception instanceof HttpException) {
             $code = $exception->getStatusCode();
             $message = Response::$statusTexts[$code];
             return $this->errorResponse($message, $code);
         }
 
-        // instance not found
+        // 2. Handle 404 Model/ID Not Found (e.g. User doesn't exist)
         if ($exception instanceof ModelNotFoundException) {
             $model = strtolower(class_basename($exception->getModel()));
             return $this->errorResponse("Does not exist any instance of {$model} with the given id", Response::HTTP_NOT_FOUND);
         }
 
-        // validation exception
+        // 3. Handle 422 Validation Errors (Missing fields)
         if ($exception instanceof ValidationException) {
             $errors = $exception->validator->errors()->getMessages();
             return $this->errorResponse($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
-    
-        // access to forbidden 
-        if ($exception instanceof AuthorizationException) {
-            return $this->errorResponse($exception->getMessage(), Response::HTTP_FORBIDDEN);
-        }
 
-        // unauthorized access
-        if ($exception instanceof AuthenticationException) {
-            return $this->errorResponse($exception->getMessage(), Response::HTTP_UNAUTHORIZED);
-        }
-        
-        // if your are running in development environment 
-        if (env('APP_DEBUG', false)) {
+        // 4. Default for everything else
+        if (env('APP_DEBUG')) {
             return parent::render($request, $exception);
         }
-        
+
         return $this->errorResponse('Unexpected error. Try later', Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 }
