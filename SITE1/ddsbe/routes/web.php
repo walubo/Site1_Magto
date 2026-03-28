@@ -29,3 +29,5 @@ $router->get('/users/{id}', 'UserController@show');
 $router->put('/users/{id}', 'UserController@update');
 $router->patch('/users/{id}', 'UserController@update');
 $router->delete('/users/{id}', 'UserController@delete');
+$router->get('/jobs', 'JobController@index');
+$router->get('/jobs/{id}', 'JobController@show');

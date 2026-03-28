@@ -6,10 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class User extends Model
 {
-    // This line tells Lumen: "Ignore the default name, use my specific table"
+    // Points to your specific table name in phpMyAdmin
     protected $table = 'tbluser'; 
 
-    protected $primaryKey = 'userId';
-    protected $fillable = ['username', 'password', 'gender'];
+    // Match this to your actual column name. 
+    // If your DB uses 'userId', use 'userId'. If it uses 'id', use 'id'.
+    protected $primaryKey = 'userId'; 
+
+    // These are the columns Postman is allowed to write to
+    protected $fillable = [
+        'username', 
+        'password', 
+        'gender',
+        'job_id' 
+    ];
+
+    // Activity 6 tables usually don't have created_at/updated_at columns
     public $timestamps = false;
 }
